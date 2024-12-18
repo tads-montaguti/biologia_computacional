@@ -1,16 +1,18 @@
-# install.packages("igraph")
-# install.packages("rstudioapi")
+if (!require(BiocManager)) install.packages("BiocManager")
+if (!require(igraph)) install.packages("igraph")
+if (!require(rstudioapi)) install.packages("rstudioapi")
+
+BiocManager::install("RedeR")
+
+library("RedeR")
 library(igraph)
 
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
-# g <- make_empty_graph()
-# g <- make_graph(edges = c(1, 2, 1, 5), n = 10, directed = FALSE)
-# summary(g)
-# plot(g)
-
 # Carrega os dados
 load("./merge_df12.RData")
+
+startRedeR()
 
 # Seleciona as colunas de interesse
 data_clean <- merge_df12[
@@ -26,10 +28,10 @@ data_clean$FIRST_VACCINE_DATE <- as.Date(data_clean$FIRST_VACCINE_DATE)
 selected_region <- "AMRO"
 
 # Filtra os dados da região especificada
-region_countries <- data_clean[data_clean$WHO_REGION == selected_region, ]
+selected_countries <- data_clean[data_clean$WHO_REGION == selected_region, ]
 
 # Somente os 15 primeiros (para melhor visualização)
-selected_countries <- head(region_countries, 15)
+# selected_countries <- head(region_countries, 50)
 
 # Data da primeira vacina entre os países filtrados
 first_vac_date <- min(selected_countries$FIRST_VACCINE_DATE, na.rm = TRUE)
@@ -37,7 +39,7 @@ first_vac_date <- min(selected_countries$FIRST_VACCINE_DATE, na.rm = TRUE)
 # Cria a coluna de DELYA_DAYS para cada país
 selected_countries$DELAY_DAYS <- as.numeric(selected_countries$FIRST_VACCINE_DATE - first_vac_date, na.rm=TRUE)
 
-# Threshold para definir se a relação entre os países (menor que 30 então conecta-se)
+# Threshold para definir se a relação entre os países (menor que 10 então conecta-se)
 threshold <- 15
 
 # Cria um dataframe vazio para armazenar as arestas
@@ -60,16 +62,20 @@ g <- graph_from_data_frame(edges, directed = FALSE)
 
 E(g)$weight <- E(g)$weight + 1
 
-plot(
-  g,
-  vertex.label = V(g)$name,
-  vertex.size = 10,
-  edge.width = 1 + E(g)$weight / max(E(g)$weight),  # Ajusta largura com base nos pesos normalizados
-  vertex.color = "lightblue",
-  edge.color = "gray",
-  layout = layout_with_fr,
-  main = paste("Grafo de Proximidade Temporal (Threshold:", threshold, "dias)")
-)
+resetRedeR()
+addGraphToRedeR(g)
+
+# plot(
+#   g,
+#   vertex.label = V(g)$name,
+#   vertex.size = 10,
+#   edge.width = 1 + E(g)$weight / max(E(g)$weight),  # Ajusta largura com base nos pesos normalizados
+#   vertex.color = "lightblue",
+#   edge.color = "gray",
+#   layout = layout_with_fr,
+#   main = paste("Grafo de Proximidade Temporal (Threshold:", threshold, "dias)")
+# )
+
 # 
 # data_clean <- merge_df12[
 #   !is.na(merge_df12$Cases_cumulative_total) &
