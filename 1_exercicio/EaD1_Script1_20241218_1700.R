@@ -1,5 +1,6 @@
-# install.packages("rstudioapi")
-# install.packages("plotly")
+if (!require(rstudioapi)) install.packages("rstudioapi")
+if (!require(plotly)) install.packages("plotly")
+
 library(plotly)
 library(dplyr)
 
